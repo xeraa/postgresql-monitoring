@@ -1,0 +1,7 @@
+heartbeat.monitors:
+
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"

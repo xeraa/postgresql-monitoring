@@ -1,0 +1,33 @@
+---
+
+- hosts: localhost
+  become: true
+  vars_files:
+    - vars.yml
+
+
+  tasks:
+
+  - name: Remove the Logstash configurations so we can recreate them
+    file: path=/etc/logstash/conf.d/00-beats-input.conf state=absent
+  - file: path=/etc/logstash/conf.d/10-postgresql-filter.conf state=absent
+  - file: path=/etc/logstash/conf.d/20-elasticsearch-output.conf state=absent
+
+  - name: Stop Logstash
+    service: name=logstash state=stopped
+
+  - name: Reset the Beat's configuration to the workshop state
+    template: src=templates/{{ item }}-workshop.yml dest=/etc/{{ item }}/{{ item }}.yml
+    with_items:
+      - filebeat
+      - heartbeat
+      - metricbeat
+      - packetbeat
+
+  - name: Restart the Beat
+    service: name={{ item }} state=restarted
+    with_items:
+      - filebeat
+      - heartbeat
+      - metricbeat
+      - packetbeat

@@ -9,10 +9,6 @@ filebeat.prospectors:
   multiline.match: after
 
 
-filebeat.modules:
-- module: system
-
-
 output.logstash:
   hosts: ["localhost:5044"]
   username: "{{ elastic_user }}"

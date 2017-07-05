@@ -1,0 +1,24 @@
+metricbeat.modules:
+
+- module: system
+  metricsets:
+    - cpu
+    - load
+    - core
+    - diskio
+    - filesystem
+    - fsstat
+    - memory
+    - network
+    - process
+    - socket
+  enabled: true
+  period: 10s
+  processes: ['.*']
+  cgroups: true
+
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"

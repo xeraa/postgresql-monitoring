@@ -1,0 +1,11 @@
+filebeat.prospectors:
+
+
+filebeat.modules:
+- module: system
+
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"
