@@ -9,7 +9,7 @@ This repository will install PostgreSQL to monitor it with the [Elastic Stack](h
 * Logs:
 * Metrics:
 * Network:
-* Activity:
+* Activity: Generate data with [SQLsmith](https://github.com/anse1/sqlsmith): `$ /opt/sqlsmith/sqlsmith --verbose --target="host=localhost port=5432 dbname=test user=test password=test"`
 
 
 

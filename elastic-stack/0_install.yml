@@ -54,6 +54,25 @@
       - postgresql
       - postgresql-contrib
 
+  - name: Install dependencies for SQLsmith
+    apt: name={{ item }} state=latest
+    with_items:
+      - build-essential
+      - autoconf
+      - autoconf-archive
+      - libpqxx-dev
+      - libboost-regex-dev
+      - libsqlite3-dev
+
+  - name: Get SQLsmith
+    unarchive:
+      src: https://github.com/anse1/sqlsmith/archive/debian/1.0-1.zip
+      dest: /opt/sqlsmith/
+      remote_src: true
+
+  - name: Build SQLsmith
+    command: cd /opt/sqlsmith/ && autoreconf -i && ./configure && make
+
 
   - name: Get Elasticsearch
     get_url:
