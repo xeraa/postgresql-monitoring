@@ -9,7 +9,8 @@ This repository will install PostgreSQL to monitor it with the [Elastic Stack](h
 * Logs:
 * Metrics:
 * Network:
-* Activity: Generate data with [SQLsmith](https://github.com/anse1/sqlsmith): `$ /opt/sqlsmith/sqlsmith --verbose --target="host=localhost port=5432 dbname=test user=test password=test"`
+* Activity: Generate PostgreSQL data with [SQLsmith](https://github.com/anse1/sqlsmith): `$ /opt/sqlsmith/sqlsmith --verbose --target="host=localhost port=5432 dbname=test user=test password=test"`
+* Injector: Generate Elasticsearch data: `$ java -jar /opt/injector.jar 100000 1000`
 
 
 
@@ -31,6 +32,8 @@ $ ansible-playbook /elastic-stack/6_configure-dashboards.yml
 
 Or if you are in a hurry, run all playbooks with `$ /elastic-stack/all.sh` at once.
 
+For workshops, reset the fully configured environment with `$ ansible-playbook /elastic-stack/prepare-workshop.yml`.
+
 
 ## Kibana
 
@@ -40,8 +43,8 @@ Access Kibana at [http://localhost:5601](http://localhost:5601). You will need t
 
 ## PostgreSQL
 
-There is a `test` database, which you can access with the username `test` and password `test`.
+`test` database to run random queries, which is also accessible from the host system: `$ psql --host=localhost --user=test --dbname=test` with the password `test`.
 
-There is also an `elastic` database used for metrics, which you can access with the username `elastic` and the password `changeme`.
+`elastic` database used for metrics, which is also accessible from the host system: `$ psql --host=localhost --user=elastic --dbname=elastic` with the password `changeme`.
 
 SSL is disabled so that Packetbeat can monitor the traffic. If you do not want to monitor the network traffic, it is safe to enable SSL.

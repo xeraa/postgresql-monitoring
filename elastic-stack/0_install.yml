@@ -177,3 +177,10 @@
     with_items:
       - all.sh
       - fix-time.sh
+
+
+  - name: Get the injector plugin to generate test data
+    get_url:
+      url=https://download.elastic.co/workshops/basic-kibana/injector/injector-5.3.jar
+      dest=/opt/injector.jar
+      mode=0755
