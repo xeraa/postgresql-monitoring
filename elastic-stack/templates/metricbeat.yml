@@ -1,0 +1,35 @@
+metricbeat.modules:
+
+- module: system
+  metricsets:
+    - cpu
+    - load
+    - core
+    - diskio
+    - filesystem
+    - fsstat
+    - memory
+    - network
+    - process
+    - socket
+  enabled: true
+  period: 10s
+  processes: ['.*']
+  cgroups: true
+
+- module: postgresql
+  metricsets:
+    - database
+    - bgwriter
+    - activity
+  enabled: true
+  period: 10s
+  hosts: ["postgres://localhost:5432?sslmode=disable"]
+  username: {{ postgresql_user }}
+  password: {{ postgresql_password }}
+
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"

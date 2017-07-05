@@ -1,0 +1,45 @@
+---
+
+- hosts: localhost
+  become: true
+  vars_files:
+    - vars.yml
+
+
+  tasks:
+
+  - name: Bind PostgreSQL to all interfaces
+    lineinfile: "dest=/etc/postgresql/9.5/main/postgresql.conf regexp='listen_addresses =' line='listen_addresses = \'*\'' state=present"
+
+  - name: Disable SSL so Packetbeat can "see" the traffic
+    lineinfile: "dest=/etc/postgresql/9.5/main/postgresql.conf regexp='ssl =' line='ssl = false' state=present"
+
+  - name: Allow password authentication for all users on all databases from everywhere
+    lineinfile: "dest=/etc/postgresql/9.5/main/pg_hba.conf regexp='host all all' line='host all all 0.0.0.0/0 password'"
+
+  - name: Restart PostgreSQL
+    service: name=postgresql state=restarted
+
+  - name: Create the PostgreSQL monitoring database
+    postgresql_db: name={{ postgresql_database }} encoding=UTF-8
+    become_user: postgres
+
+  - name: Create a user for that database
+    postgresql_user: db={{ postgresql_database }} name={{ postgresql_user }} password={{ postgresql_password }} priv=ALL
+    become_user: postgres
+
+  - name: Ensure that the user does not have unnecessary privileges
+    postgresql_user: name={{ postgresql_user }} role_attr_flags=NOSUPERUSER,NOCREATEDB
+    become_user: postgres
+
+  - name: Ensure that no other user can access the database
+    postgresql_privs: db={{ postgresql_database }} role=PUBLIC type=database priv=ALL state=absent
+    become_user: postgres
+
+  - name: Create another PostgreSQL database to do actual work
+    postgresql_db: name=test encoding=UTF-8
+    become_user: postgres
+
+  - name: Create a user for that database
+    postgresql_user: db=test name=test password=test priv=ALL
+    become_user: postgres

@@ -1,0 +1,25 @@
+---
+
+- hosts: localhost
+  become: true
+  vars_files:
+    - vars.yml
+
+
+  tasks:
+
+  - name: Change the Beat's configuration
+    template: src=templates/{{ item }}.yml dest=/etc/{{ item }}/{{ item }}.yml
+    with_items:
+      - filebeat
+      - heartbeat
+      - metricbeat
+      - packetbeat
+
+  - name: Restart the Beat
+    service: name={{ item }} state=restarted
+    with_items:
+      - filebeat
+      - heartbeat
+      - metricbeat
+      - packetbeat

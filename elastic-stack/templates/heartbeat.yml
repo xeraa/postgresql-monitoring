@@ -1,0 +1,10 @@
+heartbeat.monitors:
+- type: tcp
+  hosts: ["127.0.0.1:5432"]
+  schedule: '@every 10s'
+
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"

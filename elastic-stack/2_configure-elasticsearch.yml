@@ -1,0 +1,75 @@
+---
+
+- hosts: localhost
+  become: true
+
+
+  tasks:
+
+  - name: Stop Elasticsearch
+    service: name=elasticsearch state=stopped
+
+  - name: Add the ingest-geoip plugin to Elasticsearch
+    command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/ingest-geoip.zip --batch
+
+  - name: Add the ingest-user-agent plugin to Elasticsearch
+    command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/ingest-user-agent.zip --batch
+
+  - name: Add X-Pack to Elasticsearch
+    command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/x-pack.zip --batch
+
+  - name: Change Elasticsearch's memory usage to 512MB
+    lineinfile:
+      dest: /etc/elasticsearch/jvm.options
+      regexp: "^-Xms"
+      line: "-Xms512m"
+      state: present
+  - lineinfile:
+      dest: /etc/elasticsearch/jvm.options
+      regexp: "^-Xmx"
+      line: "-Xmx512m"
+      state: present
+
+  - name: Do not swap
+    lineinfile:
+      dest: /etc/elasticsearch/elasticsearch.yml
+      regexp: "bootstrap.memory_lock"
+      line: "bootstrap.memory_lock: true"
+      state: present
+
+  - name: We only have a single node, set minimum master nodes accordingly
+    lineinfile:
+      dest: /etc/elasticsearch/elasticsearch.yml
+      regexp: "discovery.zen.minimum_master_nodes"
+      line: "discovery.zen.minimum_master_nodes: 1"
+      state: present
+
+  - name: Require explicit names when deleting indices
+    lineinfile:
+      dest: /etc/elasticsearch/elasticsearch.yml
+      regexp: "action.destructive_requires_name"
+      line: "action.destructive_requires_name: true"
+      state: present
+
+  - name: Set the right ulimits
+    shell: ulimit -n 65536
+  - shell: ulimit -l unlimited
+
+  - name: Start Elasticsearch
+    service: name=elasticsearch state=started
+
+  - name: Wait for Elasticsearch to become available
+    wait_for:
+      port: 9200
+      delay: 5
+
+  - name: Set the number of shards to two and the number of replicas to 0
+    command: >
+      curl -XPUT 'http://localhost:9200/_template/default' -H "Content-Type: application/json" -d '{
+          "template": "*",
+          "order" : 0,
+          "settings": {
+              "number_of_shards": 2,
+              "number_of_replicas": 0
+          }
+      }'

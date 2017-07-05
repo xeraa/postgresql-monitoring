@@ -1,0 +1,160 @@
+---
+
+- hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+
+
+  tasks:
+
+  - name: Get the platform (i386 or amd64) of the virtual machine
+    command: dpkg --print-architecture
+    register: print_architecture
+
+  - name: And set the actual platform value as a variable
+    set_fact:
+      platform: "{{ print_architecture.stdout }}"
+
+
+  - name: Get rid of Chef and Puppet to save some resources and autoremove unused packages to save some disk space
+    apt: name={{ item }} state=absent autoremove=yes
+    with_items:
+      - chef
+      - puppet
+
+  - name: Install unzip for unpacking files later on
+    apt: name=unzip state=latest
+
+  - name: Install Vim, because plain Vi is driving me crazy
+    apt: name=vim state=latest
+
+  - name: Install cURL, which is missing on the Bento image
+    apt: name=curl state=latest
+
+  - name: Install NTP to avoid time drift inside the VM
+    apt: name={{ item }} state=latest
+    with_items:
+      - ntp
+      - ntpdate
+
+  - name: Install the JRE
+    apt: name=openjdk-8-jre-headless state=latest update_cache=yes install_recommends=no
+
+  - name: Install pip to get current Python dependencies
+    apt: name=python-pip state=latest
+
+  - name: Install dependencies to manage PostgreSQL
+    - pip: name=psycopg2
+
+
+  - name: Install PostgreSQL
+    apt: name={{ item }} state=latest
+    with_items:
+      - postgresql
+      - postgresql-contrib
+
+
+  - name: Get Elasticsearch
+    get_url:
+      url={{ elastic_download }}/downloads/elasticsearch/elasticsearch-{{ elastic_version }}.deb
+      dest=/opt/elasticsearch.deb
+
+  - name: Install Elasticsearch
+    apt: deb=/opt/elasticsearch.deb
+
+  - name: Make sure Elasticsearch autostarts, but is stopped until it is properly configured
+    service: name=elasticsearch enabled=yes state=stopped
+
+
+  - name: Get Logstash
+    get_url:
+      url={{ elastic_download }}/downloads/logstash/logstash-{{ elastic_version }}.deb
+      dest=/opt/logstash.deb
+
+  - name: Install Logstash
+    apt: deb=/opt/logstash.deb
+
+  - name: Make sure Logstash autostarts, but is stopped until it is properly configured
+    service: name=logstash enabled=yes state=stopped
+
+
+  - name: Get Filebeat
+    get_url:
+      url={{ elastic_download }}/downloads/beats/filebeat/filebeat-{{ elastic_version }}-{{ platform }}.deb
+      dest=/opt/filebeat.deb
+
+  - name: Install Filebeat
+    apt: deb=/opt/filebeat.deb
+
+  - name: Get Heartbeat
+    get_url:
+      url={{ elastic_download }}/downloads/beats/heartbeat/heartbeat-{{ elastic_version }}-{{ platform }}.deb
+      dest=/opt/heartbeat.deb
+
+  - name: Install Heartbeat
+    apt: deb=/opt/heartbeat.deb
+
+  - name: Get Metricbeat
+    get_url:
+      url={{ elastic_download }}/downloads/beats/metricbeat/metricbeat-{{ elastic_version }}-{{ platform }}.deb
+      dest=/opt/metricbeat.deb
+
+  - name: Install Metricbeat
+    apt: deb=/opt/metricbeat.deb
+
+  - name: Get Packetbeat
+    get_url:
+      url={{ elastic_download }}/downloads/beats/packetbeat/packetbeat-{{ elastic_version }}-{{ platform }}.deb
+      dest=/opt/packetbeat.deb
+
+  - name: Install Packetbeat
+    apt: deb=/opt/packetbeat.deb
+
+  - name: Make sure Filebeat, Heartbeat, Metricbeat, and Packetbeat autostart, but are stopped until they are properly configured
+    service: name={{ item }} enabled=yes state=stopped
+    with_items:
+      - filebeat
+      - heartbeat
+      - metricbeat
+      - packetbeat
+
+
+  - name: Get Kibana
+    get_url:
+      url={{ elastic_download }}/downloads/kibana/kibana-{{ elastic_version }}-{{ platform }}.deb
+      dest=/opt/kibana.deb
+
+  - name: Install Kibana
+    apt: deb=/opt/kibana.deb
+
+  - name: Make sure Kibana autostarts, but is stopped until it is properly configured
+    service: name=kibana enabled=yes state=stopped
+
+
+  - name: Download X-Pack
+    get_url:
+      url={{ elastic_download }}/downloads/packs/x-pack/x-pack-{{ elastic_version }}.zip
+      dest=/opt/x-pack.zip
+
+  - name: Download all dashboard
+    get_url:
+      url={{ elastic_download }}/downloads/beats/beats-dashboards/beats-dashboards-{{ elastic_version }}.zip
+      dest=/opt/dashboards.zip
+
+  - name: Download the ingest-geoip plugin
+    get_url:
+      url={{ elastic_download }}/downloads/elasticsearch-plugins/ingest-geoip/ingest-geoip-{{ elastic_version }}.zip
+      dest=/opt/ingest-geoip.zip
+
+  - name: Download the ingest-user-agent plugin
+    get_url:
+      url={{ elastic_download }}/downloads/elasticsearch-plugins/ingest-user-agent/ingest-user-agent-{{ elastic_version }}.zip
+      dest=/opt/ingest-user-agent.zip
+
+
+  - name: Make the shell scripts executable
+    file: path=/elastic-stack/{{ item }} mode=0755
+    with_items:
+      - all.sh
+      - fix-time.sh

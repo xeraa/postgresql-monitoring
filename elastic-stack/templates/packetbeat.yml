@@ -1,0 +1,30 @@
+packetbeat.interfaces.device: any
+
+
+packetbeat.flows:
+  timeout: 30s
+  period: 10s
+
+
+packetbeat.protocols.icmp:
+  enabled: true
+
+
+packetbeat.protocols.dns:
+  ports: [53]
+  include_authorities: true
+  include_additionals: true
+
+
+packetbeat.protocols.http:
+  ports: [5601, 9200]
+
+
+packetbeat.protocols.pgsql:
+  ports: [5432]
+
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  username: "{{ elastic_user }}"
+  password: "{{ elastic_password }}"

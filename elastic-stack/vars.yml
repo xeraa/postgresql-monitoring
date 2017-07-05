@@ -1,0 +1,8 @@
+elastic_version: 5.4.3
+elastic_download: https://artifacts.elastic.co
+elastic_user: elastic
+elastic_password: changeme
+
+postgresql_database: elastic
+postgresql_user: elastic
+postgresql_password: changeme
