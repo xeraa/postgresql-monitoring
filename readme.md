@@ -6,9 +6,9 @@ This repository will install PostgreSQL to monitor it with the [Elastic Stack](h
 
 ## Features
 
-* Logs:
-* Metrics:
-* Network:
+* Logs: Collect the PostgreSQL log and parse it in a sensible fashion.
+* Metrics: Collect the statistics PostgreSQL can provide.
+* Network: Monitor the PostgreSQL network traffic and visualize its performance.
 * Activity: Generate PostgreSQL data with [SQLsmith](https://github.com/anse1/sqlsmith): `$ /opt/sqlsmith/sqlsmith --verbose --target="host=localhost port=5432 dbname=test user=test password=test"`
 * Injector: Generate Elasticsearch data: `$ java -jar /opt/injector.jar 100000 1000`
 
