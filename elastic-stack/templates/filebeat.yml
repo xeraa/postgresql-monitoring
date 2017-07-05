@@ -4,7 +4,9 @@ filebeat.prospectors:
   paths:
     - /var/log/postgresql/*.log
   document_type: postgresql
-  json.message_key: log
+  multiline.pattern: '^[[:space:]]'
+  multiline.negate: false
+  multiline.match: after
 
 
 filebeat.modules:
