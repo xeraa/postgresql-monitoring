@@ -31,3 +31,14 @@
       - heartbeat
       - metricbeat
       - packetbeat
+
+  - name: Remove the Filebeat index pattern to get rid of any manual changes
+    command: >
+      curl -XDELETE "http://localhost:9200/.kibana/index-pattern/filebeat-*"
+           -u "{{ elastic_user }}:{{ elastic_password }}"
+
+  - name: Reload the Filebeat dashboard
+    command: >
+      /usr/share/filebeat/scripts/import_dashboards -file /opt/dashboards.zip
+                                                    -user {{ elastic_user }}
+                                                    -pass {{ elastic_password }}
