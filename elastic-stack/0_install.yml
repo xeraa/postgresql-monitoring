@@ -45,7 +45,7 @@
     apt: name=python-pip state=latest
 
   - name: Install dependencies to manage PostgreSQL
-    - pip: name=psycopg2
+    pip: name=psycopg2
 
 
   - name: Install PostgreSQL
