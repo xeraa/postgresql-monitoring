@@ -67,11 +67,16 @@
   - name: Get SQLsmith
     unarchive:
       src: https://github.com/anse1/sqlsmith/archive/debian/1.0-1.zip
-      dest: /opt/sqlsmith/
+      dest: /opt/
       remote_src: true
 
+  - name: Move SQLsmith to a generic folder
+    command: mv /opt/sqlsmith-debian-1.0-1/ /opt/sqlsmith/
+
   - name: Build SQLsmith
-    command: cd /opt/sqlsmith/ && autoreconf -i && ./configure && make
+    shell: autoreconf -i && ./configure && make
+    args:
+      chdir: /opt/sqlsmith/
 
 
   - name: Get Elasticsearch
