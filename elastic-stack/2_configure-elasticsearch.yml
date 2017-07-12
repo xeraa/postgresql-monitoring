@@ -30,6 +30,13 @@
       line: "-Xmx512m"
       state: present
 
+  - name: Bind to all interfaces (don't use _global_ since Vagrant is doing too much funky network stuff)
+    lineinfile:
+      dest: /etc/elasticsearch/elasticsearch.yml
+      regexp: "network.host"
+      line: "network.host: 0.0.0.0"
+      state: present
+
   - name: Do not swap
     lineinfile:
       dest: /etc/elasticsearch/elasticsearch.yml
@@ -51,9 +58,41 @@
       line: "action.destructive_requires_name: true"
       state: present
 
-  - name: Set the right ulimits
+  - name: Set the right ulimit for the number of files
     shell: ulimit -n 65536
-  - shell: ulimit -l unlimited
+
+  - name: Set the right ulimit for the memory locking
+    shell: ulimit -l unlimited
+
+  - name: Set the limit for the number of files permanentely
+    lineinfile:
+      dest: /etc/security/limits.conf
+      regexp: "elasticsearch  -  nofile"
+      line: "elasticsearch  -  nofile  65536"
+      state: present
+
+  - name: Set the limit for the locked memory permanentely
+    lineinfile:
+      dest: /etc/security/limits.conf
+      regexp: "elasticsearch  -  memlock"
+      line: "elasticsearch  -  memlock  unlimited"
+      state: present
+
+  - name: Uncomment a setting so Ubuntu correctly applies limits.conf
+    lineinfile:
+      dest: /etc/pam.d/su
+      regexp: "session    required   pam_limits.so"
+      line: "#session    required   pam_limits.so"
+      state: present
+
+  - name: Create the Systemd configuration directory
+    file: path=/etc/systemd/system/elasticsearch.service.d/ state=directory
+
+  - name: Set the right Systemd configuration
+    template: src=templates/systemd-elasticsearch.conf dest=/etc/systemd/system/elasticsearch.service.d/elasticsearch.conf
+
+  - name: Reload the configuration changes of the service
+    command: systemctl daemon-reload
 
   - name: Start Elasticsearch
     service: name=elasticsearch state=started
