@@ -9,8 +9,13 @@
   - name: Stop Kibana
     service: name=kibana state=stopped
 
+  - name: Collect the list of installed Kibana plugins
+    command: /usr/share/kibana/bin/kibana-plugin list
+    register: kibana_plugins
+
   - name: Add X-Pack to Kibana
     command: /usr/share/kibana/bin/kibana-plugin install file:///opt/x-pack.zip
+    when: "'x-pack' not in kibana_plugins.stdout"
 
   - name: Make Kibana available on all network interfaces
     lineinfile: "dest=/etc/kibana/kibana.yml regexp='^server.host' line='server.host: \"0.0.0.0\"' state=present"
