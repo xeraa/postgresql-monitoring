@@ -9,14 +9,21 @@
   - name: Stop Elasticsearch
     service: name=elasticsearch state=stopped
 
+  - name: Collect the list of installed Elasticsearch plugins
+    command: /usr/share/elasticsearch/bin/elasticsearch-plugin list
+    register: elasticsearch_plugins
+
   - name: Add the ingest-geoip plugin to Elasticsearch
     command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/ingest-geoip.zip --batch
+    when: "'ingest-geoip' not in elasticsearch_plugins.stdout"
 
   - name: Add the ingest-user-agent plugin to Elasticsearch
     command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/ingest-user-agent.zip --batch
+    when: "'ingest-user-agent' not in elasticsearch_plugins.stdout"
 
   - name: Add X-Pack to Elasticsearch
     command: /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///opt/x-pack.zip --batch
+    when: "'x-pack' not in elasticsearch_plugins.stdout"
 
   - name: Change Elasticsearch's memory usage to 512MB
     lineinfile:
@@ -104,11 +111,14 @@
 
   - name: Set the number of shards to two and the number of replicas to 0
     command: >
-      curl -XPUT 'http://localhost:9200/_template/default' -H "Content-Type: application/json" -d '{
-          "template": "*",
-          "order" : 0,
-          "settings": {
-              "number_of_shards": 2,
-              "number_of_replicas": 0
-          }
-      }'
+      curl -XPUT 'http://localhost:9200/_template/default'
+           -H "Content-Type: application/json"
+           -u "{{ elastic_user }}:{{ elastic_password }}"
+           -d '{
+                 "template": "*",
+                 "order" : 0,
+                 "settings": {
+                   "number_of_shards": 2,
+                   "number_of_replicas": 0
+                 }
+               }'
